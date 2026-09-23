@@ -1,30 +1,18 @@
 """
 Stage 2 of the pipeline: splitting documents into chunks.
 
-⚠️ THIS IS THE FILE YOU CHANGE IN MILESTONE 3.
+Milestone 3 replaces the starter's fixed-size chunking strategy with one
+designed for the city_guides corpus.
 
-`split_documents` below is deliberately plain. It cuts every document into
-fixed-size pieces with a fixed overlap and pays no attention to where sentences
-or paragraphs end. It works, and it is not good.
-
-On a corpus of short posts it may not cut anything at all: `campus_life` comes
-out as 88 documents and 88 chunks, because almost nothing in it reaches 800
-characters. That is the baseline, not a bug — Milestone 3 is where you decide
-whether one post should stay one chunk.
-
-Your job in Milestone 3 is to replace the *body* of `split_documents` with a
-strategy that fits the documents you actually read in Milestone 1. Keep the
-name and the shape of what it returns — the rest of the pipeline calls it, and
-your README has to name the function that produced your chunks.
-
-If you get stuck for 30 minutes, `fallback_split` is the original. Switch back
-to it, write down what you saw, and move on. That's a real observation about
-your pipeline, not giving up.
+The city guides are organized using Markdown section headings such as
+"Getting there", "Eat and drink", and "When to go". Instead of cutting at a
+fixed character count, split_documents keeps each labeled section together.
 """
 
 from dataclasses import dataclass
 
 import config
+
 from ingest import Document
 
 
@@ -53,6 +41,7 @@ def fallback_split(
     Keep this function. Milestone 3's stop rule points back at it, and having
     something to compare your own strategy against is useful in unit 2.
     """
+
     chunk_size = chunk_size or config.CHUNK_SIZE
     overlap = overlap or config.CHUNK_OVERLAP
 
@@ -60,11 +49,14 @@ def fallback_split(
         raise ValueError("overlap has to be smaller than chunk_size")
 
     chunks: list[Chunk] = []
+
     for doc in documents:
         start = 0
         index = 0
+
         while start < len(doc.text):
             piece = doc.text[start : start + chunk_size].strip()
+
             if piece:
                 chunks.append(
                     Chunk(
@@ -75,6 +67,7 @@ def fallback_split(
                     )
                 )
                 index += 1
+
             start += chunk_size - overlap
 
     return chunks
@@ -82,29 +75,61 @@ def fallback_split(
 
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Split city guides using their Markdown section headings.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
-
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
-
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    Each ## section is kept together as one chunk instead of splitting at a
+    fixed character count. This keeps related information together and avoids
+    cutting sentences or words in half.
     """
-    return fallback_split(documents)
+
+    chunks: list[Chunk] = []
+
+    for doc in documents:
+        sections: list[str] = []
+        current_section: list[str] = []
+
+        for line in doc.text.splitlines():
+
+            # A level-two Markdown heading begins a new topic.
+            if line.startswith("## ") and current_section:
+                section_text = "\n".join(current_section).strip()
+
+                if section_text:
+                    sections.append(section_text)
+
+                current_section = []
+
+            current_section.append(line)
+
+        # Add the final section after reaching the end of the document.
+        if current_section:
+            section_text = "\n".join(current_section).strip()
+
+            if section_text:
+                sections.append(section_text)
+
+        # Turn each section into a Chunk object.
+        for index, section in enumerate(sections):
+            chunks.append(
+                Chunk(
+                    text=section,
+                    source=doc.source,
+                    index=index,
+                    produced_by="chunker.py::split_documents",
+                )
+            )
+
+    return chunks
 
 
 def describe(chunks: list[Chunk]) -> str:
     """A one-line summary, printed after indexing."""
+
     if not chunks:
         return "0 chunks"
+
     lengths = [len(c.text) for c in chunks]
+
     return (
         f"{len(chunks)} chunks, "
         f"{sum(lengths) // len(lengths)} characters on average "
