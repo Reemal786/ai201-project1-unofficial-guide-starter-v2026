@@ -23,8 +23,7 @@ For at least 4 of my 5 test questions, the retrieved chunks include one that
 contains the answer.
 
 **Why this target:**
-<!-- e.g. "One of my questions is about a topic only two documents mention, so
-     I expect that one to be hard." -->
+<!-- Because my questions are from several different guides and some answers appear in only one specific section, making perfect retrieval less certain -->
 
 ---
 
@@ -33,8 +32,7 @@ contains the answer.
 Every answer the system produces names at least one source document.
 
 **Why this target:**
-<!-- Why all five and not four? What about your setup makes that achievable —
-     or what would have to go wrong for it not to be? -->
+<!-- generated answers should be based on retrieved information from teh city guifes, and each chunk should have its source filename.  -->
 
 ---
 
@@ -50,8 +48,7 @@ in at least 4 of 5 tries.
      just keep five of them, or the "4 of 5" above has nothing to be 4 of. -->
 
 **Why this target:**
-<!-- What did your distances look like when you set the cutoff in Milestone 4?
-     Was there a clean gap, or did the two groups overlap? -->
+<!-- the out of scrope questions are completed unrelated to the city guifes. Their retrieval distances will differ from questions about teh region, but I chose 4 out of 5 because the similarity may cause an unrelated question to retrieve a chunk that appears relevant enough to pass the cutoff -->
 
 ---
 
@@ -67,12 +64,13 @@ in at least 4 of 5 tries.
        - "At least 4 of 5 sampled chunks read as a complete thought, with no
           sentence cut in half at either end."
        - "No chunk is shorter than 200 characters, since anything below that
-          in my corpus turned out to be a heading with no content under it." -->
-
+          in my corpus turned out to be a heading with no content under it."
+     
+     4/5 sampled chunks should have a complete section or though without beginning or ending in the middle of a sentence -->
 
 
 **Why this target:**
-
+<!--this is important because since city guides are already divided into important and meaningful sections, I want the chunks to preserve enough complete context to be understood on its own. -->
 
 
 ---
@@ -85,12 +83,14 @@ in at least 4 of 5 tries.
      speed, about refusals, about a particular kind of question your corpus
      handles badly, about source attribution being correct rather than merely
      present — anything, as long as it names a number or an observable
-     outcome. -->
+     outcome. 
+     
+     for 4/5 test questions, the answer should contain the expected fact listed in questions.py-->
 
 
 
 **Why this target:**
-
+<!-- to truly ensure that the model will use the retrieved information correctly, i want each questions specific expected fact to determine whether the complete RAG pipeline produces useful answers  -->
 
 
 ---
