@@ -21,11 +21,7 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
-
-     Milestone 5. -->
+The Unofficial Guide is a retrieval-augmented  system built using the `city_guides` corpus, which contains 14 travel guides. The system retrieves relevant sections from these guides and uses them to answer questions such as how to travel between locations, when to visit, and what activities are available.
 
 ## Chunking Strategy
 
@@ -121,18 +117,9 @@ questions ranged from 0.754 to 0.899. Found the middle ground that feel between 
 
 ## How I Used AI
 
-<!-- Two specific moments. For each: what you asked for, what came back, and
-     what you changed about it.
+**1.** I asked ChatGPT to help me implement a section-based chunking function after I identified that the starter's fixed 800-character chunks were cutting through sentences and words in the city guides. It suggested splitting the documents using their Markdown `##` section headings. I used that approach in `split_documents()`, then indexed the corpus and manually inspected five resulting chunks to verify that they represented complete thoughts.
 
-     "I asked Claude to write the chunking function from my notes. It ignored
-     the overlap, so I added that myself" is the level of detail we're after.
-     "I used AI to help me code" is not.
-
-     Milestone 5. -->
-
-**1.**
-
-**2.**
+**2.** I asked ChatGPT to help me analyze the retrieval distances from my five in-corpus questions and five out-of-scope questions. Compared the two groups and identified that my in-corpus distances ranged from 0.249 to 0.390 while the out-of-scope distances ranged from 0.754 to 0.899. Based on those results, I chose to keep the starter cutoff of 0.6 rather than changing it unnecessarily, then tested an out-of-scope question to confirm that the relevance gate refused to answer it.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
