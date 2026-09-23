@@ -87,30 +87,37 @@
 
 ## Sample Answer
 
-<!-- One complete question and answer, pasted as text, with the source line
-     visible. Milestone 4. -->
-
-**Question:**
+**Question:** How many buses per day run from Brightwater to Givens Mill on weekdays?
 
 **Answer:**
 
+```text
+Four buses a day run from Brightwater to Givens Mill on weekdays (from guide_givens_mill.md).
 ```
+
+**Source:** `guide_givens_mill.md`
 ```
 
-**My relevance cutoff:**
+**My relevance cutoff:** 0.6
 
-<!-- The number you set in config.py, and how you got there.
+I kept the relevance cutoff at 0.6 after comparing the best retrieval
+distances for my five in-corpus questions with five out-of-scope questions.
+The in-corpus questions ranged from 0.249 to 0.390, while the out-of-scope
+questions ranged from 0.754 to 0.899. Found the middle ground that feel between the two groups
 
-     You ran five questions your corpus covers and the five in OUT_OF_SCOPE
-     that it clearly doesn't, and wrote down the best distance for each. What
-     did those two groups look like? Where was the gap? Put the actual numbers
-     here — the table below wants all ten rows.
-
-     Milestone 4. -->
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| How many buses per day run from Brightwater to Givens Mill on weekdays? | Yes | 0.348 |
+| What are the recommended months to visit Halden Bay while avoiding the busiest summer period? | Yes | 0.249 |
+| How often do Marchwood trams run on weekdays? | Yes | 0.384 |
+| What happens to Halden Bay during winter? | Yes | 0.390 |
+| How long does it take to walk from Givens Mill to Brightwater along the river? | Yes | 0.261 |
+| What is the capital of Mongolia? | No | 0.754 |
+| How do I change the oil in a diesel engine? | No | 0.892 |
+| Who won the 1994 World Cup? | No | 0.899 |
+| What is the recommended dosage of ibuprofen? | No | 0.815 |
+| How do I write a for loop in Rust? | No | 0.813 |
 
 ## How I Used AI
 
