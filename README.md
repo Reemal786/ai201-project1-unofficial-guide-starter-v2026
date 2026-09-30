@@ -148,16 +148,84 @@ questions ranged from 0.754 to 0.899. Found the middle ground that feel between 
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Sampled chunks contain a complete section or thought | 4 of 5 | 4/5 | 5/5 | 5/5 | MET |
+| 5. Answer contains the expected fact | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
 
+### Evidence — Before
+
+**Criterion 1 — Retrieved chunks contain the answer**
+
+Produced by `run_eval.py::main`, using retrieval from `store.py::search`.
+
+For all 5 test questions, the retrieved sources contained the information needed to answer the question. Example from Run 1:
+
+```text
+Question: How many buses per day run from Brightwater to Givens Mill on weekdays?
+Best distance: 0.3480 (passed the gate)
+Sources retrieved: guide_givens_mill.md, guide_kestrelford.md, guide_marchwood.md, guide_regional_transport.md
+
+Four buses a day run from Brightwater to Givens Mill on weekdays (from guide_givens_mill.md).
+```
+
+**Criterion 2 — Every answer names a source**
+
+Produced by `run_eval.py::main` and `generate.py`.
+
+All 15 generated answers named at least one source document. Example:
+
+```text
+What happens to Halden Bay during winter?
+
+Halden Bay largely closes during the winter.
+
+Source: guide_seasons.md
+```
+
+**Criterion 3 — Gate stops out-of-corpus questions**
+
+Produced by `run_eval.py::check_out_of_scope`.
+
+```text
+refused  (best distance 0.754)  What is the capital of Mongolia?
+refused  (best distance 0.892)  How do I change the oil in a diesel engine?
+refused  (best distance 0.899)  Who won the 1994 World Cup?
+refused  (best distance 0.846)  What is the recommended dosage of ibuprofen for a headache?
+refused  (best distance 0.813)  How do I write a for loop in Rust?
+-> gate refused 5 of 5
+```
+
+**Criterion 4 — Sampled chunks contain a complete section or thought**
+
+Produced by `app.py chunks` using `chunker.py::split_documents`.
+
+Runs 1, 2, and 3 scored 4/5, 5/5, and 5/5. The one chunk that did not meet the criterion was:
+
+```text
+Chunk 5 | source: guide_seasons.md#0 | produced by: chunker.py::split_documents
+
+# When to visit the region
+```
+
+This chunk contains only a heading and does not provide a complete thought on its own.
+
+**Criterion 5 — Answers contain the expected fact**
+
+Produced by `run_eval.py::main` and `generate.py`.
+
+All 5 questions contained their expected fact in all 3 runs. Example:
+
+```text
+Question: What are the recommended months to visit Halden Bay while avoiding the busiest summer period?
+
+The recommended months to visit Halden Bay while avoiding the busiest summer period (July and August) are June and September (`guide_halden_bay.md`).
+```
 ## Verdicts
 
 <!-- MET or MISSED for each of the five, against the target you wrote last
@@ -171,11 +239,11 @@ questions ranged from 0.754 to 0.899. Found the middle ground that feel between 
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunks contain the answer | MET | All 5 test questions retrieved information containing the expected answer, exceeding the target of at least 4 of 5 in each run. |
+| 2 | Every answer names a source | MET | All 15 generated answers across the 3 runs named at least one source document, meeting the 5 of 5 target in every run. |
+| 3 | Relevance gate stops out-of-corpus questions | MET | The relevance gate refused all 5 out-of-scope questions, exceeding the target of at least 4 of 5. |
+| 4 | Sampled chunks contain a complete section or thought | MET | The three chunk samples scored 4/5, 5/5, and 5/5. Each run therefore met the target of at least 4 of 5 complete chunks. |
+| 5 | Answers contain the expected fact | MET | All 5 answers contained the expected fact from `questions.py` in all 3 runs, exceeding the target of at least 4 of 5. |
 
 ## Diagnoses
 
