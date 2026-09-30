@@ -117,9 +117,15 @@ questions ranged from 0.754 to 0.899. Found the middle ground that feel between 
 
 ## How I Used AI
 
-**1.** I asked ChatGPT to help me implement a section-based chunking function after I identified that the starter's fixed 800-character chunks were cutting through sentences and words in the city guides. It suggested splitting the documents using their Markdown `##` section headings. I used that approach in `split_documents()`, then indexed the corpus and manually inspected five resulting chunks to verify that they represented complete thoughts.
+## How I Used AI
 
-**2.** I asked ChatGPT to help me analyze the retrieval distances from my five in-corpus questions and five out-of-scope questions. Compared the two groups and identified that my in-corpus distances ranged from 0.249 to 0.390 while the out-of-scope distances ranged from 0.754 to 0.899. Based on those results, I chose to keep the starter cutoff of 0.6 rather than changing it unnecessarily, then tested an out-of-scope question to confirm that the relevance gate refused to answer it.
+**1.** I used ChatGPT as a secondary resource while developing my chunking strategy. After inspecting the starter's fixed 800-character chunks and noticing that they cut through sentences and words, I decided that the Markdown structure of the city guides could provide better chunk boundaries. I discussed this approach with ChatGPT and used its feedback while implementing `split_documents()`. I then re-indexed the corpus and manually inspected the resulting chunks to evaluate whether they represented complete thoughts.
+
+**2.** I used ChatGPT to check my interpretation of the retrieval results after testing five in-corpus and five out-of-scope questions. I compared the retrieval distances and found a clear separation between the two groups, with in-corpus distances ranging from 0.249 to 0.390 and out-of-scope distances ranging from 0.754 to 0.899. Based on my results, I chose to keep the existing 0.6 relevance cutoff and tested the gate to confirm that it rejected out-of-scope questions.
+
+**3.** During Unit 2, I ran the before evaluation, manually reviewed the results against my five criteria, and found that all five met their targets. While reviewing the chunk samples, I noticed that one chunk contained only the heading `# When to visit the region`. I used ChatGPT to discuss why my chunking logic produced this result and to help trace it to how `split_documents()` handled content before the first `##` heading.
+
+**4.** I decided to address the heading-only chunk as my Unit 2 improvement and used ChatGPT for feedback while updating the chunking logic to ignore sections without body text. I re-indexed the corpus, inspected three new sets of chunk samples, and ran the full evaluation again. I compared the before and after results and found that Criterion 4 improved to 5/5 across all three samples while the other four criteria continued to meet their targets.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
@@ -264,12 +270,23 @@ The recommended months to visit Halden Bay while avoiding the busiest summer per
      low, and which one you'd tighten and to what.
 
      Milestone 3. -->
+No criteria were missed during the baseline evaluation, so there was no failed criterion to trace to a pipeline stage. However, the results revealed a weakness in Criterion 4 and the chunking stage.
+
+Criterion 4 met its target in all three runs with scores of 4/5, 5/5, and 5/5, but one sampled chunk from `guide_seasons.md` contained only the heading `# When to visit the region`. This occurs because `chunker.py::split_documents` can preserve a document title as its own chunk when content following the title begins with a `##` section heading. Although the criterion allowed one incomplete chunk per sample, a heading-only chunk provides little useful context for retrieval or generation.
+
+Based on this result, I would tighten Criterion 4 from requiring 4 of 5 sampled chunks to be complete thoughts to requiring all 5 of 5 sampled chunks to contain meaningful standalone information.
 
 ## The Improvement
 
 **What I changed:**
 
+I updated `chunker.py::split_documents` to prevent Markdown headings with no body text from being stored as standalone chunks. I added `has_body_text()` to check whether a section contains meaningful text beyond Markdown headings before adding it to the chunk list.
+
+After re-indexing, the number of chunks decreased from 98 to 94, and the shortest chunk increased from 23 characters to 174 characters. Criterion 4 improved from 4/5, 5/5, and 5/5 before the change to 5/5 in all three runs after the change. The other four criteria continued to meet their targets.
+
 **Why I picked it:**
+
+Although all five baseline criteria were met, Criterion 4 revealed a weakness in the chunking stage. One sampled chunk from `guide_seasons.md` contained only the heading `# When to visit the region`, which provided no useful information on its own. I chose to address this issue because it was a specific weakness revealed by the baseline evaluation, and removing heading-only chunks could improve chunk quality without changing parts of the pipeline that were already performing well.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
@@ -281,11 +298,11 @@ The recommended months to visit Halden Bay while avoiding the busiest summer per
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Sampled chunks contain a complete section or thought | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Answer contains the expected fact | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
 **Did it help?**
 
@@ -295,6 +312,7 @@ The recommended months to visit Halden Bay while avoiding the busiest summer per
      tell.
 
      Milestone 4. -->
+Yes. The change improved chunk quality without hurting the other parts of the system. Before the change, Criterion 4 scored 4/5, 5/5, and 5/5 because one sampled chunk contained only a Markdown heading. After the change, Criterion 4 scored 5/5 in all three runs. The number of chunks decreased from 98 to 94, and the shortest chunk increased from 23 to 174 characters. The other four criteria also continued to meet their targets, showing that the change fixed the identified chunking issue without reducing the system's overall performance.
 
 ## What's Still Broken
 
@@ -305,6 +323,13 @@ The recommended months to visit Halden Bay while avoiding the busiest summer per
      not.
 
      Milestone 5. -->
+## What's Still Broken
+
+All five criteria met their targets after the improvement, but the evaluation only uses five in-scope questions and five out-of-scope questions. Because the test set is small, it does not cover every type of question a user could ask about the city guides.
+
+The system also relies on a fixed relevance cutoff of 0.6. It successfully rejected all five out-of-scope questions in this evaluation, but a more ambiguous question could fall close to the cutoff and be incorrectly accepted or rejected.
+
+If I continued working on the system, I would expand the evaluation set with more difficult and ambiguous questions before making additional changes to retrieval or the relevance threshold. I stopped after the chunking improvement because it fixed the specific weakness found in the baseline evaluation while all five criteria continued to meet their targets.
 
 ## What I'd Do Differently
 
@@ -312,3 +337,8 @@ The recommended months to visit Halden Bay while avoiding the busiest summer per
      differently, and why?
 
      Milestone 5. -->
+## What I'd Do Differently
+
+If I started this project again, I would design a larger and more varied evaluation set earlier in the process. My five test questions worked well for checking whether the system could retrieve specific facts from different city guides, but they did not create many difficult retrieval cases.
+
+I would also inspect the structure of the corpus more closely before implementing the chunker. My section-based strategy preserved meaningful sections well, but I did not initially account for document titles that appeared before the first `##` heading. Testing more edge cases in the chunk structure earlier would have revealed the heading-only chunks before the evaluation stage.

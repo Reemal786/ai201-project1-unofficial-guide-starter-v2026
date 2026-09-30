@@ -73,13 +73,28 @@ def fallback_split(
     return chunks
 
 
+def has_body_text(section: str) -> bool:
+    """
+    Return True when a section contains meaningful text beyond
+    Markdown headings.
+    """
+
+    for line in section.splitlines():
+        stripped = line.strip()
+
+        if stripped and not stripped.startswith("#"):
+            return True
+
+    return False
+
+
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
     Split city guides using their Markdown section headings.
 
     Each ## section is kept together as one chunk instead of splitting at a
-    fixed character count. This keeps related information together and avoids
-    cutting sentences or words in half.
+    fixed character count. Sections containing only Markdown headings are
+    skipped so that every stored chunk contains meaningful body text.
     """
 
     chunks: list[Chunk] = []
@@ -94,7 +109,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
             if line.startswith("## ") and current_section:
                 section_text = "\n".join(current_section).strip()
 
-                if section_text:
+                if section_text and has_body_text(section_text):
                     sections.append(section_text)
 
                 current_section = []
@@ -105,7 +120,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
         if current_section:
             section_text = "\n".join(current_section).strip()
 
-            if section_text:
+            if section_text and has_body_text(section_text):
                 sections.append(section_text)
 
         # Turn each section into a Chunk object.
